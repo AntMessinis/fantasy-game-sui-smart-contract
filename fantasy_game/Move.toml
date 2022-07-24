@@ -1,0 +1,10 @@
+[package]
+name = "fantasy_game"
+version = "0.0.1"
+authors = ["Antonis"]
+
+[dependencies]
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework", rev = "main" }
+
+[addresses]
+fantasy_game =  "0x0"
