@@ -158,7 +158,6 @@ module fantasy_game::fantasy_game {
     struct Sword has key, store {
         info: Info,
         damage: u64,
-        durability: u64, //with every attack sword loses durability till it reaches 0. Then it breaks and needs to be repaired.
         rarity: u64,
         game_id: ID
     }
@@ -166,7 +165,6 @@ module fantasy_game::fantasy_game {
     struct Shield has key, store {
         info: Info,
         block_power: u64, //block_power lowers the incoming damage an enemy inflicts on hero
-        durability: u64,
         rarity: u64,
         game_id: ID
     }
@@ -174,7 +172,6 @@ module fantasy_game::fantasy_game {
     struct Armor has key, store {
         info: Info,
         block_power: u64,
-        durability: u64,
         rarity: u64,
         game_id: ID
     }
@@ -213,7 +210,6 @@ module fantasy_game::fantasy_game {
     const MYTHIC_RARITY: u64 = 5;
 
 
-
     // Error Codes
     const ENoSuchRarity: u64 = 500;
     const ENotEnoughMoney: u64 = 501;
@@ -226,6 +222,7 @@ module fantasy_game::fantasy_game {
     const ENoDemonsInTheDungeon: u64 = 508;
     const ENotStrongEnoughToFight: u64 = 509;
     const ENoTreasure: u64 = 510;
+    const EBrokenItem: u64 = 511;
 
 
     const PLAYER_DEFEATED: u64 = 1000;
@@ -311,11 +308,9 @@ module fantasy_game::fantasy_game {
     fun create_armor(game: &GameInfo, rarity: u64, ctx: &mut TxContext): Armor {
         assert!((rarity > 0) && (rarity < 6), ENoSuchRarity);
         let base_block_power = 25;
-        let base_durability = 100;
         Armor {
             info: object::new(ctx),
             block_power: base_block_power * rarity,
-            durability: base_durability * rarity,
             rarity,
             game_id: *object::info_id(&game.info)
         }
@@ -324,12 +319,10 @@ module fantasy_game::fantasy_game {
     fun create_sword(game: &GameInfo, rarity: u64, ctx: &mut TxContext): Sword {
         assert!((rarity > 0) && (rarity < 6), ENoSuchRarity);
         let base_dmg = 20;
-        let base_durability = 100;
 
         Sword {
             info: object::new(ctx),
             damage: base_dmg * rarity,
-            durability: base_durability * rarity,
             rarity,
             game_id: *object::info_id(&game.info)
         }
@@ -338,11 +331,9 @@ module fantasy_game::fantasy_game {
     fun create_shield(game: &GameInfo, rarity: u64, ctx: &mut TxContext): Shield {
         assert!((rarity > 0) && (rarity < 6), ENoSuchRarity);
         let base_block_power = 35;
-        let base_durability = 100;
         Shield {
             info: object::new(ctx),
             block_power: base_block_power * rarity,
-            durability: base_durability * rarity,
             rarity,
             game_id: *object::info_id(&game.info)
         }
@@ -806,8 +797,12 @@ module fantasy_game::fantasy_game {
         let player_dmg = get_attack_value(player) - enemy_grit - *&armor.block_power;
         let player_hp = *&player.hp;
 
+
         while ((player_hp > 0) && (enemy_hp > 0)) {
+
             enemy_hp = enemy_hp - player_dmg;
+
+
             player_hp = player_hp - enemy_dmg;
 
             assert!(player_hp > 0, PLAYER_DEFEATED)
@@ -850,6 +845,7 @@ module fantasy_game::fantasy_game {
         protection_value
     }
 
+
     // Level up your hero if he has enough experience
     fun level_up_if_ready(player: &mut Hero){
         let xp_for_level = (player.level * 900) / 2;
@@ -871,7 +867,6 @@ module fantasy_game::fantasy_game {
         let Sword{
             info: sword_id,
             damage: _,
-            durability: _, 
             rarity: _,
             game_id: _
         } = sword;
@@ -883,7 +878,6 @@ module fantasy_game::fantasy_game {
         let Armor {
             info: armor_id,
             block_power: _,
-            durability: _, 
             rarity: _,
             game_id: _
         } = armor;
@@ -895,7 +889,6 @@ module fantasy_game::fantasy_game {
         let Shield {
             info: shield_id,
             block_power: _,
-            durability: _, 
             rarity: _,
             game_id: _
         } = shield;
